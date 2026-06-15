@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AnimaLoop Studio - Creador de Videos en Bucle de 15s con IA</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #09090b;
+    }
+    .glass-panel {
+      background: rgba(18, 18, 24, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .neon-glow {
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+  </style>
+</head>
+<body class="text-gray-100 min-h-screen flex flex-col overflow-x-hidden">
+
+  <!-- Header -->
+  <header class="border-b border-zinc-800/80 bg-zinc-950/50 backdrop-blur px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center space-x-3">
+      <div class="bg-gradient-to-tr from-indigo-500 to-violet-500 p-2.5 rounded-xl shadow-lg shadow-indigo-500/25 flex items-center justify-center">
+        <i class="fa-solid fa-wand-magic-sparkles text-white text-lg"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-zinc-200 to-zinc-400">AnimaLoop Studio</h1>
+        <p class="text-xs text-zinc-500">Generador de loops perfectos de 15 segundos con resoluciones y bitrates personalizables</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-3">
+      <button id="btnInfo" class="p-2 hover:bg-zinc-800/60 rounded-lg text-zinc-400 hover:text-white transition">
+        <i class="fa-solid fa-circle-info text-lg"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- Canvas / Preview Area (Col: 7) -->
+    <div class="lg:col-span-7 flex flex-col space-y-4 w-full">
+      <!-- Preview Container -->
+      <div class="glass-panel rounded-2xl p-4 flex flex-col items-center justify-center relative overflow-hidden min-h-[350px] md:min-h-[500px] aspect-video">
+        
+        <!-- Interactive Canvas -->
+        <div id="canvasContainer" class="relative w-full h-full flex items-center justify-center bg-zinc-950 rounded-xl overflow-hidden shadow-inner">
+          <!-- Canvas starts at Full HD, scales to design settings dynamic -->
+          <canvas id="animationCanvas" class="max-w-full max-h-full object-contain rounded shadow-2xl" width="1920" height="1080"></canvas>
+          
+          <!-- Empty State Overlay -->
+          <div id="canvasEmptyState" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center space-y-4 bg-zinc-900/40 backdrop-blur-sm">
+            <div class="w-16 h-16 rounded-full bg-zinc-800/80 border border-zinc-700/50 flex items-center justify-center text-zinc-400 mb-2">
+              <i class="fa-regular fa-image text-2xl"></i>
+            </div>
+            <div>
+              <h3 class="font-semibold text-zinc-200">No hay ninguna imagen cargada</h3>
+              <p class="text-xs text-zinc-500 max-w-xs mt-1">Sube una imagen propia o genera una con IA usando el panel lateral para comenzar a animar.</p>
+            </div>
+            <label class="cursor-pointer bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-4 py-2 rounded-xl text-sm font-medium border border-zinc-700/50 transition duration-200">
+              <i class="fa-solid fa-upload mr-2"></i> Subir imagen local
+              <input type="file" id="fileUpload" accept="image/*" class="hidden">
+            </label>
+          </div>
+
+          <!-- Generation Loading State -->
+          <div id="canvasLoadingState" class="absolute inset-0 bg-zinc-950/90 backdrop-blur-md hidden flex-col items-center justify-center space-y-4 z-20">
+            <div class="relative w-20 h-20">
+              <div class="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
+              <div class="absolute inset-0 rounded-full border-4 border-t-indigo-500 animate-spin"></div>
+            </div>
+            <div class="text-center space-y-1">
+              <h4 class="font-medium text-zinc-200" id="loadingTitle">Generando Imagen...</h4>
+              <p class="text-xs text-zinc-500" id="loadingSubtitle">Esto puede tardar unos segundos, preparando pinceles neuronales.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Loop Progress Bar (15s Visualizer) -->
+        <div class="w-full mt-4 space-y-2">
+          <div class="flex justify-between items-center text-xs text-zinc-400">
+            <div class="flex items-center space-x-2">
+              <span class="inline-block w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
+              <span id="loopStatusText">Reproduciendo Bucle de 15s</span>
+              <span id="canvasResIndicator" class="text-[10px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded border border-zinc-700 font-mono">FHD 1080p</span>
+            </div>
+            <div class="font-mono text-zinc-500">
+              <span id="currentTime">0.0</span>s / <span class="text-indigo-400">15.0s</span>
+            </div>
+          </div>
+          <div class="w-full h-1.5 bg-zinc-800/80 rounded-full overflow-hidden">
+            <div id="loopProgress" class="h-full bg-gradient-to-r from-indigo-500 to-violet-500 w-0 transition-all duration-75 ease-linear"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons & Quick Controls -->
+      <div class="flex flex-wrap gap-3 items-center justify-between">
+        <div class="flex space-x-2">
+          <button id="btnPlayPause" class="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700/50 text-sm font-medium flex items-center space-x-2 transition">
+            <i class="fa-solid fa-pause text-xs" id="playPauseIcon"></i>
+            <span id="playPauseText">Pausar</span>
+          </button>
+          <button id="btnReset" class="px-4 py-2 rounded-xl bg-zinc-800/40 hover:bg-zinc-800 border border-zinc-700/30 text-sm font-medium text-zinc-400 hover:text-white flex items-center space-x-2 transition">
+            <i class="fa-solid fa-rotate-left text-xs"></i>
+            <span>Reiniciar Loop</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- NEW Advanced Export Config Panel directly below Preview Canvas -->
+      <div class="glass-panel rounded-2xl p-5 space-y-4">
+        <div class="flex items-center space-x-2 border-b border-zinc-800/60 pb-2">
+          <i class="fa-solid fa-sliders text-indigo-400"></i>
+          <h3 class="font-bold text-sm text-zinc-200">Ajustes de Exportación</h3>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- 1. Resolution Selection -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-zinc-400">Resolución del Video</label>
+            <div class="relative">
+              <select id="exportResolution" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-zinc-300 outline-none cursor-pointer focus:border-indigo-500">
+                <option value="1280x720">HD (720p) — 1280 × 720</option>
+                <option value="1920x1080" selected>FHD (1080p) — 1920 × 1080</option>
+                <option value="2560x1440">QHD (2K / 1440p) — 2560 × 1440</option>
+                <option value="3840x2160">UHD (4K / 2160p) — 3840 × 2160</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 2. Bitrate Selection -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-zinc-400">Calidad / Bitrate</label>
+            <div class="relative">
+              <select id="exportQuality" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-zinc-300 outline-none cursor-pointer focus:border-indigo-500">
+                <option value="2500000">Baja (2.5 Mbps)</option>
+                <option value="6000000">Media (6.0 Mbps)</option>
+                <option value="12000000" selected>Alta (12.0 Mbps)</option>
+                <option value="25000000">Ultra (25.0 Mbps)</option>
+                <option value="custom">Personalizado (Manual)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 3. Format Selection -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-zinc-400">Formato del Archivo</label>
+            <div class="relative">
+              <select id="exportFormat" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2.5 text-xs text-zinc-300 outline-none cursor-pointer focus:border-indigo-500">
+                <option value="mp4" selected>MP4 (.mp4)</option>
+                <option value="avi">AVI (.avi)</option>
+                <option value="mkv">MKV (.mkv)</option>
+                <option value="webm">WebM (.webm)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Bitrate Slider (Hidden by default, shown when "custom" quality is selected) -->
+        <div id="customBitrateContainer" class="hidden space-y-2 bg-zinc-950/60 p-3 rounded-xl border border-zinc-800/80">
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-zinc-400 font-semibold">Tasa de bits de video manual (Bitrate)</span>
+            <span id="customBitrateValue" class="font-mono text-indigo-400 font-bold">12.0 Mbps</span>
+          </div>
+          <input id="sliderCustomBitrate" type="range" min="1" max="50" value="12" class="w-full accent-indigo-500 bg-zinc-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+          <p class="text-[10px] text-zinc-500">Tasas de bits más altas mejoran la nitidez en resoluciones grandes (como 4K) pero aumentan la carga de GPU y el peso del archivo resultante.</p>
+        </div>
+
+        <!-- Global Export Launch Button -->
+        <div class="flex justify-end pt-2">
+          <button id="btnExport" class="w-full md:w-auto relative px-8 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 hover:shadow-indigo-500/35 flex items-center justify-center space-x-2.5 transition duration-200">
+            <i class="fa-solid fa-download"></i>
+            <span>Exportar Video con Ajustes Guardados</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Sidebar (Col: 5) -->
+    <div class="lg:col-span-5 flex flex-col space-y-6 w-full">
+      
+      <!-- Tab Controller -->
+      <div class="glass-panel rounded-2xl p-1.5 flex space-x-1">
+        <button id="tabAnimate" class="flex-1 py-2.5 px-2 rounded-xl text-[11px] font-semibold flex flex-col items-center justify-center space-y-1 bg-zinc-800 text-white shadow-sm transition duration-150">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>1. Diseñar Loop</span>
+        </button>
+        <button id="tabGenerate" class="flex-1 py-2.5 px-2 rounded-xl text-[11px] font-semibold flex flex-col items-center justify-center space-y-1 text-zinc-400 hover:text-zinc-200 transition duration-150">
+          <i class="fa-solid fa-sparkles"></i>
+          <span>2. Crear con IA</span>
+        </button>
+        <button id="tabAIAnimate" class="flex-1 py-2.5 px-2 rounded-xl text-[11px] font-semibold flex flex-col items-center justify-center space-y-1 text-zinc-400 hover:text-zinc-200 transition duration-150">
+          <i class="fa-solid fa-film text-indigo-400 animate-pulse"></i>
+          <span>3. Animación IA</span>
+        </button>
+      </div>
+
+      <!-- Content Area 1: Animación (Active by default) -->
+      <div id="paneAnimate" class="space-y-6">
+        
+        <!-- Animation Presets -->
+        <div class="glass-panel rounded-2xl p-5 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="w-1.5 h-4 bg-indigo-500 rounded-full"></span>
+              <h3 class="font-semibold text-sm tracking-wide uppercase text-zinc-400">Efecto Cinematográfico</h3>
+            </div>
+            <!-- Indicator of active AI Frame Morphing -->
+            <span id="aiMorphStatus" class="hidden text-[10px] bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">
+              <i class="fa-solid fa-circle-check mr-1"></i>IA Activa
+            </span>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-3">
+            <button data-effect="ken-burns" class="preset-btn p-3 rounded-xl bg-indigo-600/10 border-2 border-indigo-500 text-left hover:bg-zinc-800/50 transition">
+              <div class="flex items-center justify-between mb-1">
+                <i class="fa-solid fa-minimize text-indigo-400 text-sm"></i>
+                <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+              </div>
+              <div class="font-medium text-xs text-zinc-200">Ken Burns Loop</div>
+              <p class="text-[10px] text-zinc-500 mt-1">Zoom suave infinito senoidal</p>
+            </button>
+
+            <button data-effect="pan-drift" class="preset-btn p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left hover:bg-zinc-800/50 transition">
+              <div class="flex items-center justify-between mb-1">
+                <i class="fa-solid fa-arrows-left-right text-zinc-400 text-sm"></i>
+              </div>
+              <div class="font-medium text-xs text-zinc-300">Deriva Lateral</div>
+              <p class="text-[10px] text-zinc-500 mt-1">Desplazamiento fluido continuo</p>
+            </button>
+
+            <button data-effect="water-ripple" class="preset-btn p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left hover:bg-zinc-800/50 transition">
+              <div class="flex items-center justify-between mb-1">
+                <i class="fa-solid fa-water text-zinc-400 text-sm"></i>
+              </div>
+              <div class="font-medium text-xs text-zinc-300">Ondas de Fluido</div>
+              <p class="text-[10px] text-zinc-500 mt-1">Simulación orgánica líquida</p>
+            </button>
+
+            <button data-effect="pulse-breath" class="preset-btn p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left hover:bg-zinc-800/50 transition">
+              <div class="flex items-center justify-between mb-1">
+                <i class="fa-solid fa-heartbeat text-zinc-400 text-sm"></i>
+              </div>
+              <div class="font-medium text-xs text-zinc-300">Respiración</div>
+              <p class="text-[10px] text-zinc-500 mt-1">Pulso sutil de luz y escala</p>
+            </button>
+          </div>
+
+          <!-- Slider de Intensidad de Animación -->
+          <div class="space-y-2 pt-2">
+            <div class="flex justify-between text-xs">
+              <span class="text-zinc-400">Intensidad del efecto</span>
+              <span id="valIntensity" class="font-mono text-indigo-400">50%</span>
+            </div>
+            <input id="sliderIntensity" type="range" min="10" max="100" value="50" class="w-full accent-indigo-500 bg-zinc-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+          </div>
+        </div>
+
+        <!-- Atmospheric Overlays -->
+        <div class="glass-panel rounded-2xl p-5 space-y-4">
+          <div class="flex items-center space-x-2">
+            <span class="w-1.5 h-4 bg-indigo-500 rounded-full"></span>
+            <h3 class="font-semibold text-sm tracking-wide uppercase text-zinc-400">Partículas y Atmósfera</h3>
+          </div>
+
+          <div class="space-y-3">
+            <!-- No overlay -->
+            <label class="flex items-center justify-between p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-500">
+                  <i class="fa-solid fa-ban text-xs"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-semibold text-zinc-200">Sin Superposiciones</div>
+                  <p class="text-[10px] text-zinc-500">Solo la animación principal de la imagen</p>
+                </div>
+              </div>
+              <input type="radio" name="overlay" value="none" checked class="accent-indigo-500 w-4 h-4">
+            </label>
+
+            <!-- Particles Drift -->
+            <label class="flex items-center justify-between p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                  <i class="fa-solid fa-snowflake text-xs"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-semibold text-zinc-200">Partículas de Polvo / Nieve</div>
+                  <p class="text-[10px] text-zinc-500">Motes mágicos de luz flotando en bucle perfecto</p>
+                </div>
+              </div>
+              <input type="radio" name="overlay" value="particles" class="accent-indigo-500 w-4 h-4">
+            </label>
+
+            <!-- Gold Particles Drift -->
+            <label class="flex items-center justify-between p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center text-amber-500">
+                  <i class="fa-solid fa-wand-magic text-xs"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-semibold text-zinc-200">Partículas de Luz Dorada</div>
+                  <p class="text-[10px] text-zinc-500">Polvo de hadas y destellos dorados en bucle armónico</p>
+                </div>
+              </div>
+              <input type="radio" name="overlay" value="gold-particles" class="accent-indigo-500 w-4 h-4">
+            </label>
+
+            <!-- Light Leak -->
+            <label class="flex items-center justify-between p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-400">
+                  <i class="fa-solid fa-lightbulb text-xs"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-semibold text-zinc-200">Fugas de Luz Cálida</div>
+                  <p class="text-[10px] text-zinc-500">Reflejos de luz suave que entran y salen en fase</p>
+                </div>
+              </div>
+              <input type="radio" name="overlay" value="light-leak" class="accent-indigo-500 w-4 h-4">
+            </label>
+
+            <!-- Rain Overlay -->
+            <label class="flex items-center justify-between p-3 rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
+                  <i class="fa-solid fa-cloud-showers-heavy text-xs"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-semibold text-zinc-200">Lluvia Cinematográfica</div>
+                  <p class="text-[10px] text-zinc-500">Gotas cayendo con sincronía circular constante</p>
+                </div>
+              </div>
+              <input type="radio" name="overlay" value="rain" class="accent-indigo-500 w-4 h-4">
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Content Area 2: Crear con IA (Imagen 4.0) -->
+      <div id="paneGenerate" class="space-y-6 hidden">
+        <div class="glass-panel rounded-2xl p-5 space-y-4">
+          <div class="flex items-center space-x-2">
+            <span class="w-1.5 h-4 bg-violet-500 rounded-full"></span>
+            <h3 class="font-semibold text-sm tracking-wide uppercase text-zinc-400">Generar Imagen Base con IA</h3>
+          </div>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Escribe una idea en detalle. Creamos la base perfecta en alta definición optimizada para que los algoritmos de animación y bucle cobren vida de forma fluida.
+          </p>
+
+          <div class="space-y-3">
+            <textarea id="promptText" rows="3" class="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition resize-none placeholder:text-zinc-600" placeholder="Ej. Un místico bosque alienígena con hongos bioluminiscentes brillando de noche, estilo fantasía hiperrealista, 8k, cinematográfico..."></textarea>
+            
+            <!-- Quick Suggestions -->
+            <div class="flex flex-wrap gap-1.5">
+              <span class="text-[10px] text-zinc-500 self-center">Sugerencias:</span>
+              <button onclick="fillPrompt('Un lago sereno reflejando auroras boreales en el cielo estrellado, estilo cinemático de fantasía')" class="text-[10px] bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 px-2 py-1 rounded-lg transition">Auroras Boreales</button>
+              <button onclick="fillPrompt('Cyberpunk ciudad lluviosa futurista con luces de neón rosa y azul reflejándose en charcos')" class="text-[10px] bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 px-2 py-1 rounded-lg transition">Ciudad Cyberpunk</button>
+              <button onclick="fillPrompt('Un tranquilo templo Zen japonés rodeado de cerezos en flor cayendo lentamente')" class="text-[10px] bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 px-2 py-1 rounded-lg transition">Templo Zen</button>
+            </div>
+
+            <button id="btnGenerateImage" class="w-full py-3 px-4 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-xs font-semibold rounded-xl text-white shadow-lg shadow-violet-600/20 flex items-center justify-center space-x-2 transition duration-200">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>Generar Imagen con Imagen 4.0</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content Area 3: Animación IA (Cinemagraph Morphing Box) -->
+      <div id="paneAIAnimate" class="space-y-6 hidden">
+        <div class="glass-panel rounded-2xl p-5 space-y-4 border-indigo-500/30">
+          <div class="flex items-center space-x-2">
+            <span class="w-1.5 h-4 bg-indigo-500 rounded-full"></span>
+            <h3 class="font-semibold text-sm tracking-wide uppercase text-zinc-400">Generar Animación IA (Cinemagraph)</h3>
+          </div>
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            Esta función utiliza el modelo <strong>gemini-2.5-flash-image-preview</strong> para crear un fotograma de movimiento a partir de tu imagen actual. Al combinarse con tu imagen original en un bucle sinusoidal, crea un cinemagraph perfecto de 15 segundos.
+          </p>
+
+          <div class="space-y-3">
+            <div class="bg-indigo-950/20 rounded-xl p-3 border border-indigo-500/10 space-y-2">
+              <label class="block text-xs font-semibold text-indigo-300">Instrucción de Movimiento IA</label>
+              <textarea id="aiAnimatePrompt" rows="3" class="w-full bg-zinc-950/80 border border-zinc-800 rounded-xl p-3 text-xs text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition resize-none placeholder:text-zinc-600" placeholder="Ej. El agua del río fluye suavemente, las nubes del cielo se mueven lentamente hacia la derecha, las luces de neón parpadean mágicamente..."></textarea>
+            </div>
+
+            <!-- Predefined Movement Prompts -->
+            <div class="space-y-1">
+              <span class="text-[10px] text-zinc-500">Efectos recomendados:</span>
+              <div class="flex flex-wrap gap-1.5">
+                <button onclick="fillMovementPrompt('El agua fluye y las olas se mueven suavemente de manera realista')" class="text-[10px] bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 px-2 py-1 rounded-lg transition">Flujo de Agua</button>
+                <button onclick="fillMovementPrompt('Las nubes en el cielo se desplazan suavemente hacia la derecha')" class="text-[10px] bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 px-2 py-1 rounded-lg transition">Nubes en Movimiento</button>
+                <button onclick="fillMovementPrompt('Las luces de neón parpadean sutilmente creando destellos de luz')" class="text-[10px] bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 px-2 py-1 rounded-lg transition">Luces Parpadeantes</button>
+                <button onclick="fillMovementPrompt('El fuego y las brasas bailan y emiten chispas cálidas')" class="text-[10px] bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 px-2 py-1 rounded-lg transition">Fuego Danzante</button>
+              </div>
+            </div>
+
+            <!-- Morph Blend Option -->
+            <div class="space-y-2 pt-1 border-t border-zinc-800/60">
+              <div class="flex justify-between items-center text-xs">
+                <span class="text-zinc-400">Mezcla del Bucle IA</span>
+                <span id="valAIBleeding" class="font-mono text-indigo-400">100%</span>
+              </div>
+              <input id="sliderAIBleeding" type="range" min="10" max="100" value="100" class="w-full accent-indigo-500 bg-zinc-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+              <p class="text-[10px] text-zinc-500 leading-tight">Controla qué tan marcada es la diferencia entre el estado estático y el estado de movimiento generado por la IA.</p>
+            </div>
+
+            <button id="btnGenerateAIAnimation" class="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-indigo-500 text-xs font-semibold rounded-xl text-white shadow-lg shadow-indigo-600/20 flex items-center justify-center space-x-2 transition duration-200">
+              <i class="fa-solid fa-film"></i>
+              <span>Generar Fotograma de Movimiento IA</span>
+            </button>
+
+            <!-- Remove AI Animation layer if active -->
+            <button id="btnRemoveAIAnimation" class="w-full py-2 px-4 rounded-xl bg-zinc-900/40 border border-zinc-800/80 text-[11px] text-zinc-500 hover:text-rose-400 hover:border-rose-500/30 hover:bg-rose-500/5 transition hidden">
+              <i class="fa-solid fa-trash-can mr-1.5"></i>Desactivar Capa de Animación IA
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Export Progress Overlay Modal -->
+  <div id="exportModal" class="fixed inset-0 bg-zinc-950/80 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+    <div class="glass-panel max-w-md w-full rounded-2xl p-6 space-y-5 text-center shadow-2xl border border-zinc-800">
+      <div class="relative w-20 h-20 mx-auto">
+        <svg class="w-full h-full transform -rotate-90">
+          <circle cx="40" cy="40" r="34" class="text-zinc-800 stroke-current" stroke-width="4" fill="transparent"/>
+          <circle id="exportProgressRing" cx="40" cy="40" r="34" class="text-indigo-500 stroke-current" stroke-width="4" fill="transparent" stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
+        </svg>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <span id="exportPercentText" class="font-mono text-sm font-semibold">0%</span>
+        </div>
+      </div>
+
+      <div class="space-y-1">
+        <h3 class="font-bold text-lg text-zinc-100">Renderizando Video</h3>
+        <p class="text-xs text-zinc-400">Capturando fotogramas de alta resolución y enlazando en bucle perfecto. Por favor, mantén esta pestaña activa.</p>
+      </div>
+
+      <div class="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-3 space-y-2 text-xs text-zinc-400 text-left">
+        <div class="flex justify-between">
+          <span class="text-zinc-500">Resolución de salida:</span>
+          <span id="exportMetaResolution" class="font-mono text-white">1920x1080</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-zinc-500">Bitrate de render:</span>
+          <span id="exportMetaBitrate" class="font-mono text-white">12 Mbps</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-zinc-500">Formato / Loop:</span>
+          <span id="exportMetaFormat" class="font-mono text-white">MP4 / 15.0s</span>
+        </div>
+      </div>
+
+      <button id="btnCancelExport" class="w-full py-2 px-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-xs font-semibold text-zinc-400 hover:text-white transition duration-200">
+        Cancelar exportación
+      </button>
+    </div>
+  </div>
+
+  <!-- Instruction/Info Modal -->
+  <div id="infoModal" class="fixed inset-0 bg-zinc-950/80 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+    <div class="glass-panel max-w-md w-full rounded-2xl p-6 space-y-4 shadow-2xl border border-zinc-800">
+      <div class="flex justify-between items-start">
+        <h3 class="font-bold text-lg text-zinc-100 flex items-center space-x-2">
+          <i class="fa-solid fa-circle-info text-indigo-400"></i>
+          <span>Acerca de AnimaLoop Studio</span>
+        </h3>
+        <button id="btnCloseInfo" class="p-1 hover:bg-zinc-800 rounded text-zinc-400 hover:text-white transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="space-y-3 text-xs text-zinc-400 leading-relaxed">
+        <p>Esta aplicación interactiva transforma imágenes estáticas en videos dinámicos y fluidos que se repiten en un bucle continuo de 15 segundos.</p>
+        <div class="space-y-2 bg-zinc-950/60 p-3 rounded-xl border border-zinc-800">
+          <h4 class="font-semibold text-zinc-300">¿Cómo se logra el bucle perfecto?</h4>
+          <p>Los algoritmos de desplazamiento, zoom, partículas y animación de IA utilizan funciones matemáticas periódicas ($\sin$ y $\cos$). Al completarse exactamente 15 segundos de reproducción, todo el contenido visual vuelve suavemente a su estado original del fotograma $0$.</p>
+        </div>
+        <p>Puedes subir tu propia imagen, diseñar el movimiento usando IA generativa de vanguardia con <strong class="text-indigo-400">Gemini 2.5 Flash</strong> o usar el creador de imágenes integrado <strong class="text-indigo-400">Imagen 4.0</strong>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Alert Notification Overlay -->
+  <div id="notificationArea" class="fixed bottom-4 right-4 space-y-2 z-50"></div>
+
+  <!-- Footer -->
+  <footer class="border-t border-zinc-900 bg-zinc-950/40 py-4 px-6 text-center text-[11px] text-zinc-600">
+    <p>AnimaLoop Studio - Procesado local de alta fidelidad en Canvas 2D. Todos los derechos reservados.</p>
+  </footer>
+
+  <!-- Core Scripts -->
+  <script>
+    // System Constants
+    const LOOP_DURATION = 15000; // 15 seconds loop in ms
+    const apiKey = ""; // Set dynamically by platform
+
+    // Firebase environment details if offered later (stored in memory for now)
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-loop-app';
+
+    // UI elements
+    const fileUpload = document.getElementById('fileUpload');
+    const canvas = document.getElementById('animationCanvas');
+    const ctx = canvas.getContext('2d');
+    const canvasEmptyState = document.getElementById('canvasEmptyState');
+    const canvasLoadingState = document.getElementById('canvasLoadingState');
+    const loadingTitle = document.getElementById('loadingTitle');
+    const loadingSubtitle = document.getElementById('loadingSubtitle');
+    const btnPlayPause = document.getElementById('btnPlayPause');
+    const playPauseIcon = document.getElementById('playPauseIcon');
+    const playPauseText = document.getElementById('playPauseText');
+    const btnReset = document.getElementById('btnReset');
+    const btnExport = document.getElementById('btnExport');
+    const exportFormat = document.getElementById('exportFormat');
+    const exportResolution = document.getElementById('exportResolution');
+    const exportQuality = document.getElementById('exportQuality');
+    const customBitrateContainer = document.getElementById('customBitrateContainer');
+    const sliderCustomBitrate = document.getElementById('sliderCustomBitrate');
+    const customBitrateValue = document.getElementById('customBitrateValue');
+    const canvasResIndicator = document.getElementById('canvasResIndicator');
+    const currentTimeEl = document.getElementById('currentTime');
+    const loopProgress = document.getElementById('loopProgress');
+    const sliderIntensity = document.getElementById('sliderIntensity');
+    const valIntensity = document.getElementById('valIntensity');
+
+    // Preset buttons
+    const presetButtons = document.querySelectorAll('.preset-btn');
+    
+    // Overlay radios
+    const overlayRadios = document.querySelectorAll('input[name="overlay"]');
+
+    // Modals
+    const btnInfo = document.getElementById('btnInfo');
+    const btnCloseInfo = document.getElementById('btnCloseInfo');
+    const infoModal = document.getElementById('infoModal');
+    const exportModal = document.getElementById('exportModal');
+    const exportProgressRing = document.getElementById('exportProgressRing');
+    const exportPercentText = document.getElementById('exportPercentText');
+    const btnCancelExport = document.getElementById('btnCancelExport');
+
+    const exportMetaResolution = document.getElementById('exportMetaResolution');
+    const exportMetaBitrate = document.getElementById('exportMetaBitrate');
+    const exportMetaFormat = document.getElementById('exportMetaFormat');
+
+    // Prompt tools (Imagen 4.0)
+    const promptText = document.getElementById('promptText');
+    const btnGenerateImage = document.getElementById('btnGenerateImage');
+
+    // AI Animation Tools (Gemini Image-to-Image)
+    const aiAnimatePrompt = document.getElementById('aiAnimatePrompt');
+    const btnGenerateAIAnimation = document.getElementById('btnGenerateAIAnimation');
+    const btnRemoveAIAnimation = document.getElementById('btnRemoveAIAnimation');
+    const aiMorphStatus = document.getElementById('aiMorphStatus');
+    const sliderAIBleeding = document.getElementById('sliderAIBleeding');
+    const valAIBleeding = document.getElementById('valAIBleeding');
+
+    // Tabs
+    const tabAnimate = document.getElementById('tabAnimate');
+    const tabGenerate = document.getElementById('tabGenerate');
+    const tabAIAnimate = document.getElementById('tabAIAnimate');
+    const paneAnimate = document.getElementById('paneAnimate');
+    const paneGenerate = document.getElementById('paneGenerate');
+    const paneAIAnimate = document.getElementById('paneAIAnimate');
+
+    // Global App State
+    let currentImage = null;
+    let aiTargetImage = null; // Storing the AI image-to-image loop destination frame
+    let isPlaying = true;
+    let animationEffect = 'ken-burns'; // 'ken-burns', 'pan-drift', 'water-ripple', 'pulse-breath'
+    let overlayEffect = 'none'; // 'none', 'particles', 'gold-particles', 'light-leak', 'rain'
+    let effectIntensity = 0.5; // From 0.1 to 1.0
+    let aiBleedIntensity = 1.0; // Blend intensity of the AI morph frame (from 0.1 to 1.0)
+    let animationStartTime = 0;
+    let pausedTime = 0;
+    let lastFrameTime = 0;
+    let animationFrameId = null;
+
+    // Recording variables
+    let isRecording = false;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let recordStartTime = 0;
+
+    // Particles system State for looping (Adapts relative to selected canvas workspace)
+    let particlesArray = [];
+    const BASE_MAX_PARTICLES = 160;
+
+    // Light Leak State
+    let lightLeaks = [];
+
+    // Notification system
+    function showNotification(message, type = 'info') {
+      const notificationArea = document.getElementById('notificationArea');
+      const card = document.createElement('div');
+      card.className = `glass-panel px-4 py-3 rounded-xl flex items-center space-x-3 text-xs shadow-xl border-l-4 transition-all duration-300 transform translate-y-2 opacity-0 max-w-xs`;
+      
+      let iconColor = 'text-indigo-400';
+      let icon = 'fa-info-circle';
+      let border = 'border-l-indigo-500';
+
+      if (type === 'success') {
+        iconColor = 'text-emerald-400';
+        icon = 'fa-check-circle';
+        border = 'border-l-emerald-500';
+      } else if (type === 'error') {
+        iconColor = 'text-rose-400';
+        icon = 'fa-triangle-exclamation';
+        border = 'border-l-rose-500';
+      } else if (type === 'warn') {
+        iconColor = 'text-amber-400';
+        icon = 'fa-circle-exclamation';
+        border = 'border-l-amber-500';
+      }
+
+      card.className += ` ${border}`;
+      card.innerHTML = `
+        <i class="fa-solid ${icon} ${iconColor} text-base"></i>
+        <div class="flex-1">
+          <p class="font-semibold text-zinc-100">${message}</p>
+        </div>
+      `;
+
+      notificationArea.appendChild(card);
+      // Animation in
+      setTimeout(() => {
+        card.classList.remove('translate-y-2', 'opacity-0');
+      }, 50);
+
+      // Auto dismiss
+      setTimeout(() => {
+        card.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => card.remove(), 300);
+      }, 4000);
+    }
+
+    // Dynamic Canvas Resolution Changer (Updates viewport dynamically without losing design progress)
+    exportResolution.addEventListener('change', () => {
+      const [w, h] = exportResolution.value.split('x').map(Number);
+      canvas.width = w;
+      canvas.height = h;
+
+      // Update indicator label
+      let tag = "FHD 1080p";
+      if (w === 1280) tag = "HD 720p";
+      if (w === 2560) tag = "QHD 2K";
+      if (w === 3840) tag = "UHD 4K";
+      canvasResIndicator.innerText = tag;
+
+      initOverlays();
+      showNotification(`Resolución de lienzo adaptada a ${w}x${h} (${tag})`, 'info');
+    });
+
+    // Custom Bitrate dropdown toggle visibility logic
+    exportQuality.addEventListener('change', () => {
+      if (exportQuality.value === 'custom') {
+        customBitrateContainer.classList.remove('hidden');
+      } else {
+        customBitrateContainer.classList.add('hidden');
+      }
+    });
+
+    sliderCustomBitrate.addEventListener('input', (e) => {
+      customBitrateValue.innerText = `${parseFloat(e.target.value).toFixed(1)} Mbps`;
+    });
+
+    // Three-Tab switcher logic
+    tabAnimate.addEventListener('click', () => {
+      tabAnimate.className = "flex-1 py-2.5 px-2 rounded-xl text-[11px] font-semibold flex flex-col items-center justify-center space-y-1 bg-zinc-800 text-white shadow-sm transition duration-150";
+      tabGenerate.className = "flex-1 py-2.5 px-2 rounded-xl text-[11px] font-semibold flex flex-col items-center justify-center space-y-1 text-zinc-400 hover:text-zinc-200 transition duration-150";
+      tabAIAnimate.className = "flex-1 py-2.5 px-2 rounded-xl text-[11px] font-semibold flex flex-col items-center justify-center space-y-1 text-zinc-400 hover:text-zinc-200 transition duration-150";
+      paneAnimate.classList.remove('hidden');
+      paneGenerate.classList.add('hidden');
+      paneAIAnimate.classList.add('hidden');
+    });
+
+    tabGenerate.addEventListener('click', () => {
+      tabGenerate.className = "flex-1 py-2.5 px-2 rounded-xl text-[11px] font-semibold flex flex-col items-center justify-center space-y-1 bg-zinc-800 text-white shadow-sm transition duration-150";
+      tabAnimate.className = "flex-1 py-2.5 px-2 rounded-xl text-[11px] font-semibold flex flex-col items-center justify-center space-y-1 text-zinc-400 hover:text-zinc-200 transition duration-150";
+      tabAIAnimate.className = "flex-1 py-2.5 px-2 rounded-xl text-[11px] font-semibold flex flex-col items-center justify-center space-y-1 text-zinc-400 hover:text-zinc-200 transition duration-150";
+      paneGenerate.classList.remove('hidden');
+      paneAnimate.classList.add('hidden');
+      paneAIAnimate.classList.add('hidden');
+    });
+
+    tabAIAnimate.addEventListener('click', () => {
+      tabAIAnimate.className = "flex-1 py-2.5 px-2 rounded-xl text-[11px] font-semibold flex flex-col items-center justify-center space-y-1 bg-zinc-800 text-white shadow-sm transition duration-150";
+      tabAnimate.className = "flex-1 py-2.5 px-2 rounded-xl text-[11px] font-semibold flex flex-col items-center justify-center space-y-1 text-zinc-400 hover:text-zinc-200 transition duration-150";
+      tabGenerate.className = "flex-1 py-2.5 px-2 rounded-xl text-[11px] font-semibold flex flex-col items-center justify-center space-y-1 text-zinc-400 hover:text-zinc-200 transition duration-150";
+      paneAIAnimate.classList.remove('hidden');
+      paneAnimate.classList.add('hidden');
+      paneGenerate.classList.add('hidden');
+    });
+
+    // Populate suggestions
+    window.fillPrompt = function(text) {
+      promptText.value = text;
+    };
+
+    window.fillMovementPrompt = function(text) {
+      aiAnimatePrompt.value = text;
+    };
+
+    // Sliders
+    sliderIntensity.addEventListener('input', (e) => {
+      effectIntensity = e.target.value / 100;
+      valIntensity.innerText = `${e.target.value}%`;
+    });
+
+    sliderAIBleeding.addEventListener('input', (e) => {
+      aiBleedIntensity = e.target.value / 100;
+      valAIBleeding.innerText = `${e.target.value}%`;
+    });
+
+    // Change Preset Animation
+    presetButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        presetButtons.forEach(b => {
+          b.className = "preset-btn p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-left hover:bg-zinc-800/50 transition";
+          const subText = b.querySelector('.font-medium');
+          if (subText) subText.classList.replace('text-indigo-200', 'text-zinc-300');
+          const check = b.querySelector('.w-2');
+          if (check) check.remove();
+        });
+        
+        btn.className = "preset-btn p-3 rounded-xl bg-indigo-600/10 border-2 border-indigo-500 text-left hover:bg-zinc-800/50 transition";
+        const titleEl = btn.querySelector('.font-medium');
+        if (titleEl) {
+          titleEl.classList.replace('text-zinc-300', 'text-indigo-200');
+          const divHeader = btn.querySelector('.flex');
+          if (divHeader && !divHeader.querySelector('.w-2')) {
+            const circle = document.createElement('span');
+            circle.className = 'w-2 h-2 rounded-full bg-indigo-400';
+            divHeader.appendChild(circle);
+          }
+        }
+        
+        animationEffect = btn.getAttribute('data-effect');
+        showNotification(`Efecto cambiado a: ${btn.querySelector('.font-medium').textContent}`, 'success');
+      });
+    });
+
+    // Handle Overlay changes
+    overlayRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        overlayEffect = e.target.value;
+        showNotification(`Efecto de partícula: ${overlayEffect.toUpperCase()}`, 'info');
+      });
+    });
+
+    // Handle uploaded file
+    fileUpload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        loadImageFromFile(file);
+      }
+    });
+
+    function loadImageFromFile(file) {
+      canvasEmptyState.classList.add('hidden');
+      canvasLoadingState.classList.remove('hidden');
+      loadingTitle.innerText = "Cargando Imagen...";
+      loadingSubtitle.innerText = "Procesando dimensiones para adaptar animación.";
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+          currentImage = img;
+          aiTargetImage = null; // Clear old AI frame morphing
+          aiMorphStatus.classList.add('hidden');
+          btnRemoveAIAnimation.classList.add('hidden');
+          canvasEmptyState.classList.add('hidden');
+          canvasLoadingState.classList.add('hidden');
+          resetAnimationTimer();
+          initOverlays();
+          showNotification("¡Imagen cargada correctamente!", "success");
+        }
+        img.onerror = function() {
+          canvasLoadingState.classList.add('hidden');
+          canvasEmptyState.classList.remove('hidden');
+          showNotification("Hubo un problema al cargar el archivo de imagen.", "error");
+        };
+        img.src = event.target.value || event.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // AI Base Image Generation with Gemini API (Imagen 4.0)
+    btnGenerateImage.addEventListener('click', async () => {
+      const prompt = promptText.value.trim();
+      if (!prompt) {
+        showNotification("Escribe una descripción primero para indicarle a la IA qué crear.", "warn");
+        return;
+      }
+
+      canvasEmptyState.classList.add('hidden');
+      canvasLoadingState.classList.remove('hidden');
+      loadingTitle.innerText = "Imaginando Imagen...";
+      loadingSubtitle.innerText = "El modelo Imagen 4.0 está esculpiendo tu loop ideal en nuestro lienzo de alta definición.";
+
+      const generateWithBackoff = async (prompt, retries = 5, delay = 1000) => {
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              instances: [
+                { prompt: prompt }
+              ],
+              parameters: {
+                sampleCount: 1,
+                aspectRatio: "16:9",
+                outputMimeType: "image/jpeg"
+              }
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          if (data.predictions && data.predictions[0] && data.predictions[0].bytesBase64Encoded) {
+            return `data:image/jpeg;base64,${data.predictions[0].bytesBase64Encoded}`;
+          } else {
+            throw new Error("Invalid response format from generation model");
+          }
+        } catch (error) {
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return generateWithBackoff(prompt, retries - 1, delay * 2);
+          } else {
+            throw error;
+          }
+        }
+      };
+
+      try {
+        const base64Url = await generateWithBackoff(prompt);
+        const img = new Image();
+        img.onload = () => {
+          currentImage = img;
+          aiTargetImage = null; // Reset AI morph frame
+          aiMorphStatus.classList.add('hidden');
+          btnRemoveAIAnimation.classList.add('hidden');
+          canvasLoadingState.classList.add('hidden');
+          resetAnimationTimer();
+          initOverlays();
+          showNotification("¡Imagen mágica generada con Imagen 4.0!", "success");
+        };
+        img.src = base64Url;
+      } catch (err) {
+        console.error(err);
+        canvasLoadingState.classList.add('hidden');
+        if (!currentImage) canvasEmptyState.classList.remove('hidden');
+        showNotification("No pudimos contactar con el generador de imágenes. Por favor, reintenta.", "error");
+      }
+    });
+
+    // Generate AI animation (Cinemagraph frame using gemini-2.5-flash-image-preview)
+    btnGenerateAIAnimation.addEventListener('click', async () => {
+      if (!currentImage) {
+        showNotification("Debes tener una imagen cargada en el lienzo para aplicar animación IA.", "warn");
+        return;
+      }
+
+      const movementPrompt = aiAnimatePrompt.value.trim();
+      if (!movementPrompt) {
+        showNotification("Escribe una instrucción de movimiento para que la IA sepa qué animar.", "warn");
+        return;
+      }
+
+      canvasLoadingState.classList.remove('hidden');
+      loadingTitle.innerText = "Modelando Movimiento IA...";
+      loadingSubtitle.innerText = "Gemini 2.5 Flash está analizando la imagen para estructurar la deformación de movimiento de forma natural.";
+
+      // Capture current canvas base static image
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 1280; // Render to HD for better AI detail transfer
+      tempCanvas.height = 720;
+      const tempCtx = tempCanvas.getContext('2d');
+      tempCtx.drawImage(currentImage, 0, 0, tempCanvas.width, tempCanvas.height);
+      const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.90);
+      const base64Data = dataUrl.split(',')[1];
+
+      const animationPromptFull = `This is a cinematic image. Generate the matching motion sequence destination frame. The overall composition, colors, and perspective must be identical. Animate the following element(s): ${movementPrompt}. Make sure only the requested areas show smooth flow/deformation, keeping all static objects identical.`;
+
+      const callGeminiAIAnimate = async (retries = 5, delay = 1000) => {
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { text: animationPromptFull },
+                  { inlineData: { mimeType: "image/jpeg", data: base64Data } }
+                ]
+              }],
+              generationConfig: {
+                responseModalities: ["TEXT", "IMAGE"]
+              }
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const result = await response.json();
+          const base64Output = result.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+
+          if (base64Output) {
+            return `data:image/jpeg;base64,${base64Output}`;
+          } else {
+            throw new Error("No image returned from Gemini AI");
+          }
+        } catch (error) {
+          if (retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+            return callGeminiAIAnimate(retries - 1, delay * 2);
+          } else {
+            throw error;
+          }
+        }
+      };
+
+      try {
+        const aiFrameUrl = await callGeminiAIAnimate();
+        const aiImg = new Image();
+        aiImg.onload = () => {
+          aiTargetImage = aiImg;
+          canvasLoadingState.classList.add('hidden');
+          aiMorphStatus.classList.remove('hidden');
+          btnRemoveAIAnimation.classList.remove('hidden');
+          showNotification("¡Animación IA generada! Bucle de fusión activado automáticamente.", "success");
+          
+          // Switch to layout view to see status
+          tabAnimate.click();
+        };
+        aiImg.src = aiFrameUrl;
+      } catch (err) {
+        console.error(err);
+        canvasLoadingState.classList.add('hidden');
+        showNotification("Error de conexión al generar la animación por IA. Por favor reintenta.", "error");
+      }
+    });
+
+    // Remove AI Layer
+    btnRemoveAIAnimation.addEventListener('click', () => {
+      aiTargetImage = null;
+      aiMorphStatus.classList.add('hidden');
+      btnRemoveAIAnimation.classList.add('hidden');
+      showNotification("Capa de movimiento IA desactivada", "info");
+    });
+
+    // Loop progress calculations
+    function getLoopProgress() {
+      if (!isPlaying && !isRecording) {
+        return (pausedTime % LOOP_DURATION) / LOOP_DURATION;
+      }
+      const now = performance.now();
+      const elapsed = isRecording ? (now - recordStartTime) : (now - animationStartTime);
+      return (elapsed % LOOP_DURATION) / LOOP_DURATION;
+    }
+
+    // Modal Control Events
+    btnInfo.addEventListener('click', () => infoModal.classList.remove('hidden'));
+    btnCloseInfo.addEventListener('click', () => infoModal.classList.add('hidden'));
+
+    // Reset Clock
+    function resetAnimationTimer() {
+      animationStartTime = performance.now();
+      pausedTime = 0;
+    }
+
+    // Toggle Play / Pause
+    btnPlayPause.addEventListener('click', () => {
+      if (isPlaying) {
+        isPlaying = false;
+        pausedTime = performance.now() - animationStartTime;
+        playPauseIcon.className = "fa-solid fa-play text-xs";
+        playPauseText.innerText = "Reanudar";
+        showNotification("Animación en pausa", "info");
+      } else {
+        isPlaying = true;
+        animationStartTime = performance.now() - pausedTime;
+        playPauseIcon.className = "fa-solid fa-pause text-xs";
+        playPauseText.innerText = "Pausar";
+        showNotification("Animación reanudada", "success");
+      }
+    });
+
+    btnReset.addEventListener('click', () => {
+      resetAnimationTimer();
+      showNotification("Loop reiniciado al segundo 0", "info");
+    });
+
+    // Initialize Overlays (Mathematical Loop Calibration for Dynamically Sized Canvas space)
+    function initOverlays() {
+      // Scale particle sizes and quantities to fit resolutions elegantly (from HD 720p to 4K)
+      const scaleFactor = canvas.width / 1920; 
+      const totalParticles = Math.floor(BASE_MAX_PARTICLES * (scaleFactor * 0.4 + 0.6));
+
+      particlesArray = [];
+      for (let i = 0; i < totalParticles; i++) {
+        particlesArray.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: (Math.random() * 4.0 + 1.0) * (scaleFactor * 0.5 + 0.5), // Scale particle thickness slightly
+          cyclesY: Math.floor(Math.random() * 3) + 1, 
+          cyclesX: Math.floor(Math.random() * 5) - 2, 
+          alphaBase: Math.random() * 0.5 + 0.3,
+          pulseSpeed: Math.floor(Math.random() * 3) + 1, 
+          driftOffset: Math.random() * Math.PI * 2
+        });
+      }
+
+      lightLeaks = [];
+      const colors = ['rgba(245, 158, 11, 0.08)', 'rgba(239, 68, 68, 0.06)', 'rgba(99, 102, 241, 0.07)'];
+      for (let i = 0; i < 3; i++) {
+        lightLeaks.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: (Math.random() * 450 + 300) * scaleFactor, // Scaled leak radius relative to width
+          color: colors[i % colors.length],
+          phaseOffset: Math.random() * Math.PI * 2 
+        });
+      }
+    }
+
+    // Master Draw Loop
+    function draw() {
+      if (!currentImage) {
+        animationFrameId = requestAnimationFrame(draw);
+        return;
+      }
+
+      const progress = getLoopProgress();
+      
+      const displaySeconds = (progress * 15).toFixed(1);
+      currentTimeEl.innerText = displaySeconds;
+      loopProgress.style.width = `${progress * 100}%`;
+
+      // Render layers
+      renderBaseFrame(progress);
+
+      // Render Overlays
+      if (overlayEffect !== 'none') {
+        renderOverlayFrame(progress);
+      }
+
+      animationFrameId = requestAnimationFrame(draw);
+    }
+
+    function renderBaseFrame(progress) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#0c0c0e";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const angle = progress * Math.PI * 2;
+      
+      let scale = 1.0;
+      let offsetX = 0;
+      let offsetY = 0;
+      let opacity = 1.0;
+
+      const dynamicShiftScale = canvas.width / 1920;
+
+      if (animationEffect === 'ken-burns') {
+        const scaleFactor = 0.2 * effectIntensity;
+        scale = 1.0 + scaleFactor * (1 - Math.cos(angle)) / 2;
+      } 
+      else if (animationEffect === 'pan-drift') {
+        const maxShift = 60 * effectIntensity * dynamicShiftScale; 
+        offsetX = Math.sin(angle) * maxShift;
+        offsetY = (1 - Math.cos(angle)) * maxShift * 0.5;
+        scale = 1.06;
+      } 
+      else if (animationEffect === 'pulse-breath') {
+        const breatheFactor = 0.08 * effectIntensity;
+        scale = 1.0 + breatheFactor * (1 - Math.cos(angle)) / 2;
+        opacity = 0.85 + 0.15 * (1 + Math.cos(angle)) / 2;
+      }
+
+      ctx.save();
+      
+      const drawWidth = canvas.width * scale;
+      const drawHeight = canvas.height * scale;
+      const x = (canvas.width - drawWidth) / 2 + offsetX;
+      const y = (canvas.height - drawHeight) / 2 + offsetY;
+
+      if (aiTargetImage) {
+        // AI GRAPH MORPH BLENDING
+        const morphFactor = Math.sin(progress * Math.PI) * aiBleedIntensity;
+
+        // Render base original image
+        ctx.globalAlpha = opacity * (1 - morphFactor);
+        ctx.drawImage(currentImage, x, y, drawWidth, drawHeight);
+
+        // Render AI Target Motion frame seamlessly on top
+        ctx.globalAlpha = opacity * morphFactor;
+        ctx.drawImage(aiTargetImage, x, y, drawWidth, drawHeight);
+      } 
+      else if (animationEffect === 'water-ripple') {
+        const segments = Math.floor(160 * (canvas.height / 1080)); // Slicing density relative to resolution height
+        const segmentHeight = canvas.height / segments;
+        const amplitude = 18 * effectIntensity * dynamicShiftScale; 
+
+        ctx.globalAlpha = opacity;
+        for (let i = 0; i < segments; i++) {
+          const sy = i * segmentHeight;
+          const dy = sy;
+          const lineAngle = (sy / canvas.height) * Math.PI * 4 + angle;
+          const shift = Math.sin(lineAngle) * amplitude;
+
+          ctx.drawImage(
+            currentImage,
+            0, (sy / canvas.height) * currentImage.height, currentImage.width, (segmentHeight / canvas.height) * currentImage.height,
+            shift, dy, canvas.width, segmentHeight
+          );
+        }
+      } 
+      else {
+        ctx.globalAlpha = opacity;
+        ctx.drawImage(currentImage, x, y, drawWidth, drawHeight);
+      }
+      
+      ctx.restore();
+    }
+
+    function renderOverlayFrame(progress) {
+      const angle = progress * Math.PI * 2;
+      ctx.save();
+
+      const scaleFactor = canvas.width / 1920;
+
+      if (overlayEffect === 'particles' || overlayEffect === 'gold-particles') {
+        const isGold = overlayEffect === 'gold-particles';
+        for (let i = 0; i < particlesArray.length; i++) {
+          const p = particlesArray[i];
+          
+          const totalDriftY = p.cyclesY * canvas.height * progress;
+          const totalDriftX = p.cyclesX * canvas.width * progress;
+          
+          let currentY = (p.y + totalDriftY) % canvas.height;
+          let currentX = (p.x + totalDriftX) % canvas.width;
+          if (currentX < 0) currentX += canvas.width;
+
+          let borderFade = 1.0;
+          const margin = 80 * scaleFactor; 
+          if (currentY < margin) borderFade *= (currentY / margin);
+          else if (currentY > canvas.height - margin) borderFade *= ((canvas.height - currentY) / margin);
+          if (currentX < margin) borderFade *= (currentX / margin);
+          else if (currentX > canvas.width - margin) borderFade *= ((canvas.width - currentX) / margin);
+
+          const opacityPulse = p.alphaBase + 0.15 * Math.sin(angle * p.pulseSpeed + p.driftOffset);
+          const alpha = Math.max(0, Math.min(1, opacityPulse * borderFade));
+
+          ctx.beginPath();
+          ctx.arc(currentX, currentY, p.radius, 0, Math.PI * 2);
+          
+          if (isGold) {
+            ctx.fillStyle = `rgba(253, 186, 116, ${alpha})`; 
+            ctx.shadowBlur = 14 * scaleFactor; 
+            ctx.shadowColor = "rgba(245, 158, 11, 0.8)";
+          } else {
+            ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+            ctx.shadowBlur = 10 * scaleFactor;
+            ctx.shadowColor = "rgba(255, 255, 255, 0.4)";
+          }
+          ctx.fill();
+        }
+      } 
+      else if (overlayEffect === 'light-leak') {
+        for (let i = 0; i < lightLeaks.length; i++) {
+          const l = lightLeaks[i];
+          const driftRadius = 150 * effectIntensity * scaleFactor;
+          const cx = l.x + Math.sin(angle + l.phaseOffset) * driftRadius;
+          const cy = l.y + Math.cos(angle + l.phaseOffset) * driftRadius;
+
+          const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, l.radius);
+          grad.addColorStop(0, l.color);
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+          ctx.fillStyle = grad;
+          ctx.globalCompositeOperation = "screen";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      else if (overlayEffect === 'rain') {
+        ctx.strokeStyle = "rgba(174, 207, 238, 0.22)";
+        ctx.lineWidth = 1.5 * scaleFactor; 
+        ctx.lineCap = "round";
+
+        const numDrops = Math.floor(110 * (canvas.width / 1920)); 
+        const cyclesY = 3; 
+        const cyclesX = -1; 
+        
+        for (let i = 0; i < numDrops; i++) {
+          const rx = (i * 37) % canvas.width;
+          const ry = (i * 59) % canvas.height;
+          
+          const yOffset = cyclesY * canvas.height * progress;
+          const xOffset = cyclesX * canvas.width * progress;
+          
+          let currentY = (ry + yOffset) % canvas.height;
+          let currentX = (rx + xOffset) % canvas.width;
+          if (currentX < 0) currentX += canvas.width;
+
+          let fade = 1.0;
+          if (currentY < 40) fade = currentY / 40;
+          else if (currentY > canvas.height - 40) fade = (canvas.height - currentY) / 40;
+
+          ctx.beginPath();
+          ctx.moveTo(currentX, currentY);
+          ctx.lineTo(currentX - (3 * scaleFactor), currentY + (25 * scaleFactor)); 
+          ctx.globalAlpha = fade;
+          ctx.stroke();
+        }
+      }
+
+      ctx.restore();
+    }
+
+    // Export / Record video via WebRTC MediaRecorder (Dynamic Resolution & Custom Bitrate Injection)
+    btnExport.addEventListener('click', async () => {
+      if (!currentImage) {
+        showNotification("No hay imagen cargada para exportar.", "warn");
+        return;
+      }
+
+      // 1. Get chosen format & resolution
+      const format = exportFormat.value; 
+      const resVal = exportResolution.value;
+
+      // 2. Determine target Bitrate (bps)
+      let bitrateBps = 12000000; // default 12 Mbps
+      const qVal = exportQuality.value;
+
+      if (qVal === 'custom') {
+        bitrateBps = parseInt(sliderCustomBitrate.value) * 1000000;
+      } else {
+        bitrateBps = parseInt(qVal);
+      }
+
+      const bitrateMbpsStr = `${(bitrateBps / 1000000).toFixed(1)} Mbps`;
+
+      // Update Modal Metadata UI
+      exportMetaResolution.innerText = resVal;
+      exportMetaBitrate.innerText = bitrateMbpsStr;
+      exportMetaFormat.innerText = `${format.toUpperCase()} / 15.0s`;
+
+      showNotification(`Preparando renderizado: ${resVal} a ${bitrateMbpsStr}...`, "info");
+      exportModal.classList.remove('hidden');
+      isRecording = true;
+      recordedChunks = [];
+
+      isPlaying = true;
+      playPauseIcon.className = "fa-solid fa-pause text-xs";
+      playPauseText.innerText = "Pausar";
+      recordStartTime = performance.now();
+      animationStartTime = recordStartTime;
+
+      // Capture canvas stream at standard 30fps
+      const stream = canvas.captureStream(30);
+      
+      // Inject chosen Bitrate dynamically into the encoding parameters
+      let options = { 
+        mimeType: 'video/webm; codecs=vp9',
+        videoBitsPerSecond: bitrateBps
+      };
+      
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = { 
+          mimeType: 'video/webm; codecs=vp8',
+          videoBitsPerSecond: bitrateBps
+        };
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          options = { 
+            mimeType: 'video/webm',
+            videoBitsPerSecond: bitrateBps
+          };
+        }
+      }
+
+      try {
+        mediaRecorder = new MediaRecorder(stream, options);
+      } catch (e) {
+        console.error("Failed to initialize MediaRecorder", e);
+        showNotification("Error de compatibilidad al inicializar codificador.", "error");
+        exportModal.classList.add('hidden');
+        isRecording = false;
+        return;
+      }
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          recordedChunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        let mimeType = 'video/webm';
+        if (format === 'mp4') {
+          mimeType = 'video/mp4';
+        } else if (format === 'avi') {
+          mimeType = 'video/x-msvideo';
+        } else if (format === 'mkv') {
+          mimeType = 'video/x-matroska';
+        }
+
+        const blob = new Blob(recordedChunks, { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `AnimaLoop_${resVal}_${Date.now()}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        
+        setTimeout(() => {
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }, 100);
+
+        exportModal.classList.add('hidden');
+        isRecording = false;
+        showNotification(`¡Video exportado como ${format.toUpperCase()} con éxito!`, "success");
+      };
+
+      mediaRecorder.start();
+
+      const checkProgressInterval = setInterval(() => {
+        if (!isRecording) {
+          clearInterval(checkProgressInterval);
+          return;
+        }
+
+        const elapsed = performance.now() - recordStartTime;
+        const pct = Math.min(100, (elapsed / LOOP_DURATION) * 100);
+        
+        const maxOffset = 213.6;
+        const offset = maxOffset - (pct / 100) * maxOffset;
+        exportProgressRing.setAttribute('stroke-dashoffset', offset);
+        exportPercentText.innerText = `${Math.floor(pct)}%`;
+
+        if (elapsed >= LOOP_DURATION) {
+          clearInterval(checkProgressInterval);
+          mediaRecorder.stop();
+        }
+      }, 100);
+    });
+
+    btnCancelExport.addEventListener('click', () => {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+        recordedChunks = [];
+        exportModal.classList.add('hidden');
+        showNotification("Renderizado cancelado por el usuario", "warn");
+      }
+    });
+
+    // Start App Animation Loop on Load
+    window.onload = function() {
+      canvasEmptyState.classList.remove('hidden');
+      initOverlays();
+      animationFrameId = requestAnimationFrame(draw);
+    };
+  </script>
+</body>
+</html>
