@@ -69,29 +69,27 @@ button,input,select,textarea{font:inherit}button{cursor:pointer}.topbar{height:7
  </div>
  <div class="pane" id="pane-image">
   <div class="surface panel">
-   <div class="panel-title"><h3>Generación de imagen</h3><small>Conexión segura</small></div>
-   <p class="hint">Describe la escena que quieres crear. La generación requiere un backend propio que proteja la clave del proveedor.</p>
+   <div class="panel-title"><h3>Generación de imagen</h3><small>Gemini Canvas</small></div>
+   <p class="hint">Describe la escena y genera una imagen con la integración de Gemini del entorno Canvas.</p>
    <div class="field"><label for="imagePrompt">Descripción de imagen</label><textarea id="imagePrompt" placeholder="Ej. Un bosque místico al anochecer, luciérnagas, niebla suave y luz volumétrica…"></textarea></div>
-   <div class="field"><label for="imageEndpoint">Endpoint de tu backend</label><input type="url" id="imageEndpoint" placeholder="https://tu-servidor.com/api/generate-image"></div>
    <button class="btn primary" id="generateImage" style="width:100%">✧ Generar imagen</button>
-   <p class="hint">Contrato esperado: POST JSON <code>{prompt, aspectRatio:"16:9"}</code> y respuesta JSON con <code>image</code> (URL o data URL). No introduzcas aquí una clave API.</p>
+   <p class="hint" id="imageAiNote">La generación con IA está preparada para ejecutarse dentro de Gemini Canvas. No necesitas escribir endpoints.</p>
   </div>
  </div>
  <div class="pane" id="pane-motion">
   <div class="surface panel">
-   <div class="panel-title"><h3>Fotograma de movimiento IA</h3><small>Image-to-image</small></div>
+   <div class="panel-title"><h3>Fotograma de movimiento IA</h3><small>Gemini Image-to-Image</small></div>
    <p class="hint">Genera una variante de la imagen actual con cambios de movimiento sugeridos. El resultado se mezcla en una curva sinusoidal para volver al fotograma inicial.</p>
    <div class="field"><label for="motionPrompt">Instrucción de movimiento</label><textarea id="motionPrompt" placeholder="Ej. Las nubes se desplazan lentamente y el agua del río fluye…"></textarea></div>
-   <div class="field"><label for="motionEndpoint">Endpoint de tu backend</label><input type="url" id="motionEndpoint" placeholder="https://tu-servidor.com/api/animate-image"></div>
    <div class="field"><label for="blend">Mezcla de movimiento <output id="blendVal">70%</output></label><input id="blend" type="range" min="10" max="100" value="70"></div>
    <button class="btn primary" id="generateMotion" style="width:100%">◉ Generar fotograma IA</button>
    <button class="btn hidden" id="removeMotion" style="width:100%;margin-top:8px">Quitar fotograma IA</button>
-   <p class="hint">Contrato esperado: POST JSON <code>{prompt, image}</code> y respuesta JSON con <code>image</code>. La imagen base se envía como data URL.</p>
+   <p class="hint" id="motionAiNote">La generación con IA está preparada para ejecutarse dentro de Gemini Canvas. No necesitas escribir endpoints.</p>
   </div>
  </div>
 </aside>
 </main>
-<footer class="footer">ANIMALOOP STUDIO PRO · Canvas 2D · Procesamiento local en tu navegador</footer>
+<footer class="footer">ANIMALOOP STUDIO PRO · Gemini Canvas · Canvas 2D</footer>
 <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 <script>
 (()=>{'use strict';
@@ -146,12 +144,93 @@ async function exportVideo(){if(!image)return;const mime=$('codec').value;if(!mi
  finally{clearInterval(recordTimer);if(recordStream)recordStream.getTracks().forEach(t=>t.stop());recordStream=null;recording=null;canvas.width=oldW;canvas.height=oldH;elapsed=oldElapsed;playing=wasPlaying;last=performance.now();$('exportProgressWrap').classList.add('hidden');$('export').disabled=!image;render(progress())}
 }
 $('export').onclick=exportVideo;$('cancelExport').onclick=()=>{cancelled=true;if(recording&&recording.state!=='inactive')recording.stop()};
-async function endpointRequest(endpoint,payload){if(!endpoint)throw new Error('Configura primero el endpoint de backend.');let url;try{url=new URL(endpoint)}catch{throw new Error('La URL del endpoint no es válida.')}if(location.protocol==='https:'&&url.protocol!=='https:')throw new Error('Usa HTTPS para el endpoint.');const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!res.ok)throw new Error(`El servidor respondió HTTP ${res.status}.`);const data=await res.json();if(!data.image||typeof data.image!=='string')throw new Error('El backend debe devolver JSON con la propiedad "image".');return data.image}
-function imageFromResponse(src){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('La respuesta no contiene una imagen válida.'));im.src=src})}
-$('generateImage').onclick=async()=>{const prompt=$('imagePrompt').value.trim();if(!prompt){toast('Escribe una descripción primero.',true);return}const b=$('generateImage');b.disabled=true;b.textContent='Generando…';try{const src=await endpointRequest($('imageEndpoint').value.trim(),{prompt,aspectRatio:'16:9'});const im=await imageFromResponse(src);image=im;motionImage=null;$('empty').classList.add('hidden');$('export').disabled=false;$('downloadFrame').disabled=false;resetClock();toast('Imagen recibida desde tu backend.')}catch(e){toast(e.message,true)}finally{b.disabled=false;b.textContent='✧ Generar imagen'}};
-$('generateMotion').onclick=async()=>{if(!image){toast('Carga primero una imagen base.',true);return}const prompt=$('motionPrompt').value.trim();if(!prompt){toast('Escribe qué elemento debe moverse.',true);return}const b=$('generateMotion');b.disabled=true;b.textContent='Generando…';try{const temp=document.createElement('canvas');temp.width=1280;temp.height=720;temp.getContext('2d').drawImage(image,0,0,1280,720);const src=await endpointRequest($('motionEndpoint').value.trim(),{prompt,image:temp.toDataURL('image/jpeg',.9)});motionImage=await imageFromResponse(src);$('removeMotion').classList.remove('hidden');toast('Fotograma de movimiento cargado.')}catch(e){toast(e.message,true)}finally{b.disabled=false;b.textContent='◉ Generar fotograma IA'}};
+// Gemini Canvas supplies the API key dynamically in its app runtime.
+// Keep this convention from the original AnimaLoop app: never ask the user for an endpoint.
+const apiKey = ""; // Set dynamically by platform
+const GEMINI_IMAGE_MODEL = "imagen-4.0-generate-001";
+const GEMINI_MOTION_MODEL = "gemini-2.5-flash-image-preview";
+
+function imageFromResponse(src){
+ return new Promise((resolve,reject)=>{
+  const im=new Image();
+  im.onload=()=>resolve(im);
+  im.onerror=()=>reject(new Error('Gemini devolvió un archivo de imagen que no se pudo abrir.'));
+  im.src=src;
+ });
+}
+function extractGeminiError(data,status){
+ const msg=data?.error?.message||data?.message||`Error HTTP ${status}`;
+ if(status===401||status===403)return 'Gemini no autorizó la solicitud. Abre esta app dentro de Gemini Canvas y comprueba que la función de IA esté habilitada.';
+ if(status===404)return 'El modelo de IA solicitado no está disponible en este entorno. Actualiza la integración de Gemini Canvas.';
+ if(status===429)return 'Se alcanzó el límite temporal de solicitudes de Gemini. Espera un momento e inténtalo de nuevo.';
+ return msg;
+}
+async function geminiFetch(url,body){
+ let lastError;
+ for(let attempt=0;attempt<4;attempt++){
+  try{
+   const response=await fetch(url,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+   });
+   const data=await response.json().catch(()=>({}));
+   if(!response.ok){
+    const err=new Error(extractGeminiError(data,response.status));
+    if(response.status!==429&&response.status<500)throw err;
+    lastError=err;
+   }else return data;
+  }catch(err){
+   lastError=err;
+   if(/Failed to fetch|NetworkError|Load failed/i.test(err.message||'')){
+    throw new Error('No se pudo conectar con Gemini. Abre AnimaLoop Studio Pro dentro de Gemini Canvas y vuelve a intentarlo.');
+   }
+   if(!/HTTP 429|HTTP 5|límite temporal/i.test(err.message||'') && attempt===3)throw err;
+  }
+  if(attempt<3)await new Promise(resolve=>setTimeout(resolve,900*Math.pow(2,attempt)));
+ }
+ throw lastError||new Error('Gemini no pudo completar la solicitud.');
+}
+$('generateImage').onclick=async()=>{
+ const prompt=$('imagePrompt').value.trim();
+ if(!prompt){toast('Escribe una descripción primero.',true);return}
+ const b=$('generateImage');b.disabled=true;b.textContent='Generando con Gemini…';
+ try{
+  const data=await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:predict?key=${apiKey}`,{
+   instances:[{prompt}],
+   parameters:{sampleCount:1,aspectRatio:'16:9',outputMimeType:'image/jpeg'}
+  });
+  const encoded=data?.predictions?.[0]?.bytesBase64Encoded;
+  if(!encoded)throw new Error('Gemini respondió, pero no devolvió una imagen. Revisa la disponibilidad de Imagen 4.0.');
+  const im=await imageFromResponse(`data:image/jpeg;base64,${encoded}`);
+  image=im;motionImage=null;$('empty').classList.add('hidden');$('export').disabled=false;$('downloadFrame').disabled=false;resetClock();toast('¡Imagen generada con Gemini!');
+ }catch(e){toast(e.message||'No se pudo generar la imagen.',true)}
+ finally{b.disabled=false;b.textContent='✧ Generar imagen'}
+};
+$('generateMotion').onclick=async()=>{
+ if(!image){toast('Carga primero una imagen base.',true);return}
+ const prompt=$('motionPrompt').value.trim();
+ if(!prompt){toast('Escribe qué elemento debe moverse.',true);return}
+ const b=$('generateMotion');b.disabled=true;b.textContent='Generando movimiento…';
+ try{
+  const temp=document.createElement('canvas');temp.width=1280;temp.height=720;
+  temp.getContext('2d').drawImage(image,0,0,1280,720);
+  const dataUrl=temp.toDataURL('image/jpeg',.9),base64Data=dataUrl.split(',')[1];
+  const fullPrompt=`This is a cinematic image. Generate a matching destination frame. Preserve the original composition, colors, camera perspective, lighting and all static objects. Animate only the requested element(s): ${prompt}. The result should look like the same scene a moment later, with natural, subtle motion.`;
+  const result=await geminiFetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MOTION_MODEL}:generateContent?key=${apiKey}`,{
+   contents:[{parts:[{text:fullPrompt},{inlineData:{mimeType:'image/jpeg',data:base64Data}}]}],
+   generationConfig:{responseModalities:['TEXT','IMAGE']}
+  });
+  const part=result?.candidates?.[0]?.content?.parts?.find(p=>p.inlineData?.data);
+  if(!part)throw new Error('Gemini no devolvió un fotograma de movimiento. Prueba con una instrucción más sencilla.');
+  const mime=part.inlineData.mimeType||'image/png';
+  const im=await imageFromResponse(`data:${mime};base64,${part.inlineData.data}`);
+  motionImage=im;$('removeMotion').classList.remove('hidden');toast('¡Fotograma de movimiento generado con Gemini!');
+ }catch(e){toast(e.message||'No se pudo generar el movimiento.',true)}
+ finally{b.disabled=false;b.textContent='◉ Generar fotograma IA'}
+};
 $('removeMotion').onclick=()=>{motionImage=null;$('removeMotion').classList.add('hidden');toast('Capa IA desactivada.')};
-$('aboutBtn').onclick=()=>toast('AnimaLoop Studio Pro · Las animaciones y exportaciones se procesan localmente. La IA requiere un backend propio.');
+$('aboutBtn').onclick=()=>toast('AnimaLoop Studio Pro · Animación y exportación local. Generación IA mediante Gemini Canvas.');
 makeParticles();detectFormats();last=performance.now();raf=requestAnimationFrame(draw);
 window.addEventListener('beforeunload',()=>{cancelled=true;if(raf)cancelAnimationFrame(raf);if(recording&&recording.state!=='inactive')recording.stop();if(recordStream)recordStream.getTracks().forEach(t=>t.stop())});
 })();
