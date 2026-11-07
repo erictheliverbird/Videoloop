@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0d12">
+<title>AnimaLoop Studio Pro</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+:root{color-scheme:dark;--bg:#090b10;--panel:#11151e;--panel2:#151b26;--line:#252d3b;--muted:#8d98aa;--text:#edf1f8;--accent:#9b8cff;--accent2:#61d9c3;--danger:#ff7185}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 12% -10%,#252044 0,transparent 38%),radial-gradient(ellipse at 100% 10%,#12302f 0,transparent 28%),var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+button,input,select,textarea{font:inherit}button{cursor:pointer}.topbar{height:76px;border-bottom:1px solid #ffffff12;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,4vw,56px);background:#090b10cc;backdrop-filter:blur(18px);position:sticky;top:0;z-index:5}.brand{display:flex;align-items:center;gap:13px}.logo{width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,#9b8cff,#56d7c2);display:grid;place-items:center;color:#10131b;font-size:20px;font-weight:800;box-shadow:0 8px 30px #9b8cff30}.brand h1{font:700 18px 'Space Grotesk';margin:0;letter-spacing:-.5px}.brand p{margin:3px 0 0;color:var(--muted);font-size:11px;letter-spacing:.5px}.top-actions{display:flex;align-items:center;gap:10px}.status{font-size:11px;color:#8ee5d2;border:1px solid #61d9c344;background:#61d9c310;border-radius:30px;padding:7px 11px}.btn{border:1px solid var(--line);background:#1a202c;color:var(--text);padding:10px 14px;border-radius:11px;font-size:12px;font-weight:700;transition:.2s}.btn:hover{border-color:#8174dc;background:#22283a;transform:translateY(-1px)}.btn.primary{background:linear-gradient(110deg,#8877ef,#5cbdad);border:0;color:#0b1118;box-shadow:0 8px 24px #8174dc25}.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}.layout{max-width:1500px;margin:auto;padding:28px clamp(14px,3vw,42px) 50px;display:grid;grid-template-columns:minmax(0,1.45fr) minmax(340px,.8fr);gap:22px}.left,.right{min-width:0}.eyebrow{font-size:10px;text-transform:uppercase;letter-spacing:1.8px;color:#a89cff;font-weight:700}.heading{font:600 24px 'Space Grotesk';letter-spacing:-.8px;margin:7px 0 4px}.subheading{font-size:12px;color:var(--muted);margin:0 0 18px}.surface{background:linear-gradient(145deg,#151a25eF,#10141cF2);border:1px solid var(--line);border-radius:18px;box-shadow:0 16px 50px #0003}.preview-card{padding:15px}.preview-head{display:flex;align-items:center;justify-content:space-between;padding:3px 4px 13px}.preview-head strong{font:600 13px 'Space Grotesk'}.preview-head span{font-size:10px;color:var(--muted)}.stage{position:relative;aspect-ratio:16/9;background:#05070b;border-radius:12px;overflow:hidden;display:grid;place-items:center;border:1px solid #ffffff10}.stage canvas{width:100%;height:100%;object-fit:contain;display:block}.empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:25px;background:radial-gradient(ellipse,#20253a,#090b10 72%)}.empty .symbol{font-size:36px;color:#a99cff;margin-bottom:10px}.empty b{font:600 16px 'Space Grotesk'}.empty p{font-size:11px;line-height:1.6;color:var(--muted);max-width:280px}.file-label{margin-top:8px}.timeline{padding:15px 3px 2px}.timeline-top{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);margin-bottom:9px}.time{font:600 12px 'Space Grotesk';color:#d9d4ff}.track{height:5px;border-radius:20px;background:#293142;overflow:hidden}.track>div{height:100%;width:0;background:linear-gradient(90deg,#9b8cff,#61d9c3);border-radius:20px}.transport{display:flex;justify-content:space-between;align-items:center;margin-top:15px;gap:10px}.transport-group{display:flex;gap:8px}.control{width:38px;height:36px;border:1px solid var(--line);border-radius:10px;background:#1a202b;color:#e9e9f7}.control:hover{border-color:#8174dc}.transport-note{font-size:10px;color:var(--muted)}.panel{padding:18px;margin-bottom:14px}.panel-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}.panel-title h3{font:600 13px 'Space Grotesk';margin:0}.panel-title small{color:var(--muted);font-size:10px}.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:5px;background:#0b0e15;border:1px solid var(--line);border-radius:14px;margin-bottom:14px}.tab{border:0;background:transparent;color:#8e99ab;border-radius:10px;padding:11px 6px;font-size:11px;font-weight:700}.tab.active{background:#25223b;color:#d9d3ff;box-shadow:inset 0 0 0 1px #8e80ef55}.tab span{display:block;font-size:16px;margin-bottom:4px}.pane{display:none}.pane.active{display:block}.field{margin:13px 0}.field label{display:flex;justify-content:space-between;font-size:11px;color:#b6c0ce;margin-bottom:7px}.field input[type=range]{width:100%;accent-color:#a194ff}.field select,.field textarea,.field input[type=text],.field input[type=url]{width:100%;background:#0b0f16;border:1px solid #2b3443;border-radius:10px;color:var(--text);padding:10px 11px;font-size:11px;outline:none}.field textarea{resize:vertical;min-height:78px;line-height:1.5}.field select:focus,.field textarea:focus,.field input:focus{border-color:#8c7ef0}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}.choice{border:1px solid var(--line);background:#0d1119;border-radius:11px;padding:12px;text-align:left;color:#dce2ec;min-height:69px}.choice b{display:block;font-size:11px}.choice small{display:block;color:var(--muted);font-size:9px;margin-top:5px;line-height:1.4}.choice.active{border-color:#9b8cff;background:#8f80ff13;box-shadow:inset 0 0 0 1px #9b8cff33}.radio-list{display:grid;gap:7px}.radio-option{display:flex;align-items:center;gap:9px;padding:10px;border:1px solid var(--line);background:#0d1119;border-radius:10px;font-size:11px;color:#c6cfdd}.radio-option input{accent-color:#9b8cff}.hint{font-size:10px;color:var(--muted);line-height:1.5;margin:8px 0}.actions{display:flex;gap:8px;flex-wrap:wrap}.actions .btn{flex:1}.export-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.separator{height:1px;background:var(--line);margin:15px 0}.notice{font-size:10px;color:#aab5c5;line-height:1.55;background:#0b1018;border:1px solid #283243;padding:11px;border-radius:10px}.notice.warn{border-color:#8e6b374d;color:#e7c58b}.toast{position:fixed;right:20px;bottom:20px;z-index:20;background:#171e2a;border:1px solid #394458;border-radius:12px;padding:12px 16px;max-width:min(380px,calc(100vw - 40px));font-size:12px;box-shadow:0 14px 40px #0008}.toast.error{border-color:#a64f60}.hidden{display:none!important}.footer{text-align:center;color:#606b7b;font-size:10px;padding:10px 20px 30px}
+@media(max-width:960px){.layout{grid-template-columns:1fr}.right{display:grid;grid-template-columns:1fr 1fr;gap:12px}.tabs{grid-column:1/-1}.right .panel{margin:0}.right .pane{grid-column:1/-1}.export-panel{grid-column:1/-1}}@media(max-width:620px){.topbar{height:66px}.brand p,.status{display:none}.layout{padding-top:18px}.right{display:block}.right .panel{margin-bottom:12px}.heading{font-size:21px}.transport-note{display:none}.grid2,.export-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header class="topbar">
+ <div class="brand"><div class="logo">A</div><div><h1>AnimaLoop <span style="color:#a99cff">Studio Pro</span></h1><p>CREATIVE MOTION WORKSPACE</p></div></div>
+ <div class="top-actions"><span class="status">● Motor local activo</span><button class="btn" id="aboutBtn">Acerca de</button></div>
+</header>
+<main class="layout">
+<section class="left">
+ <div class="eyebrow">Espacio de trabajo</div><h2 class="heading">Da movimiento a tus imágenes.</h2><p class="subheading">Diseña escenas cinematográficas y exporta un bucle de 15 segundos.</p>
+ <div class="surface preview-card">
+  <div class="preview-head"><strong>Monitor de composición</strong><span id="resLabel">1920 × 1080 · 16:9</span></div>
+  <div class="stage"><canvas id="canvas" width="1920" height="1080"></canvas>
+   <div class="empty" id="empty"><div class="symbol">✧</div><b>Tu escena empieza aquí</b><p>Carga una imagen para crear una animación en bucle. Se recomienda una imagen horizontal para el formato 16:9.</p><label class="btn primary file-label">＋ Cargar imagen<input id="upload" type="file" accept="image/*" hidden></label></div>
+  </div>
+  <div class="timeline"><div class="timeline-top"><span id="playState">● Vista previa lista</span><span class="time"><span id="clock">00:00.0</span> / 00:15.0</span></div><div class="track"><div id="progress"></div></div>
+   <div class="transport"><div class="transport-group"><button class="control" id="play" title="Pausar o reproducir">Ⅱ</button><button class="control" id="reset" title="Reiniciar">↺</button><button class="control" id="replace" title="Cambiar imagen">＋</button></div><span class="transport-note">Bucle periódico · 15 segundos · 30 FPS</span></div>
+  </div>
+ </div>
+ <div class="surface panel export-panel" style="margin-top:14px">
+  <div class="panel-title"><h3>Exportación de vídeo</h3><small>Renderizado desde Canvas</small></div>
+  <div class="export-grid">
+   <div class="field"><label for="resolution">Resolución</label><select id="resolution"><option value="1280x720">HD · 720p</option><option value="1920x1080" selected>Full HD · 1080p</option><option value="2560x1440">QHD · 1440p</option><option value="3840x2160">4K · 2160p</option></select></div>
+   <div class="field"><label for="fps">Fotogramas por segundo</label><select id="fps"><option>24</option><option selected>30</option><option>60</option></select></div>
+   <div class="field"><label for="codec">Formato disponible</label><select id="codec"></select></div>
+   <div class="field"><label for="bitrate">Bitrate</label><select id="bitrate"><option value="4000000">4 Mbps · estándar</option><option value="8000000">8 Mbps · alta</option><option value="12000000" selected>12 Mbps · muy alta</option><option value="20000000">20 Mbps · máxima</option></select></div>
+  </div>
+  <div class="notice" id="formatNote">Los formatos se detectan según el navegador. El contenedor descargado coincide con el códec seleccionado.</div>
+  <div class="actions" style="margin-top:14px"><button class="btn primary" id="export" disabled>↓ Exportar bucle de 15 s</button><button class="btn" id="downloadFrame" disabled>Guardar fotograma</button></div>
+  <div class="field hidden" id="exportProgressWrap"><label><span id="exportStatus">Preparando grabación…</span><span id="exportPct">0%</span></label><div class="track"><div id="exportProgress"></div></div><button class="btn" id="cancelExport" style="margin-top:10px;width:100%">Cancelar exportación</button></div>
+ </div>
+</section>
+<aside class="right">
+ <div class="tabs"><button class="tab active" data-tab="design"><span>◈</span>Diseñar Loop</button><button class="tab" data-tab="image"><span>✧</span>Crear con IA</button><button class="tab" data-tab="motion"><span>◉</span>Animación IA</button></div>
+ <div class="pane active" id="pane-design">
+  <div class="surface panel">
+   <div class="panel-title"><h3>Movimiento cinematográfico</h3><small>Vista previa en tiempo real</small></div>
+   <div class="grid2">
+    <button class="choice active" data-effect="ken"><b>Ken Burns</b><small>Zoom suave de entrada y salida</small></button>
+    <button class="choice" data-effect="pan"><b>Deriva lateral</b><small>Desplazamiento panorámico</small></button>
+    <button class="choice" data-effect="ripple"><b>Ondulación</b><small>Distorsión horizontal sutil</small></button>
+    <button class="choice" data-effect="breath"><b>Respiración</b><small>Pulso de escala y luminosidad</small></button>
+   </div>
+   <div class="field"><label for="intensity">Intensidad <output id="intensityVal">50%</output></label><input id="intensity" type="range" min="10" max="100" value="50"></div>
+  </div>
+  <div class="surface panel">
+   <div class="panel-title"><h3>Atmósfera y partículas</h3><small>Capas superpuestas</small></div>
+   <div class="radio-list">
+    <label class="radio-option"><input type="radio" name="overlay" value="none" checked> Sin superposición</label>
+    <label class="radio-option"><input type="radio" name="overlay" value="dust"> Polvo luminoso</label>
+    <label class="radio-option"><input type="radio" name="overlay" value="gold"> Partículas doradas</label>
+    <label class="radio-option"><input type="radio" name="overlay" value="leak"> Fugas de luz cálida</label>
+    <label class="radio-option"><input type="radio" name="overlay" value="rain"> Lluvia cinematográfica</label>
+   </div>
+  </div>
+ </div>
+ <div class="pane" id="pane-image">
+  <div class="surface panel">
+   <div class="panel-title"><h3>Generación de imagen</h3><small>Conexión segura</small></div>
+   <p class="hint">Describe la escena que quieres crear. La generación requiere un backend propio que proteja la clave del proveedor.</p>
+   <div class="field"><label for="imagePrompt">Descripción de imagen</label><textarea id="imagePrompt" placeholder="Ej. Un bosque místico al anochecer, luciérnagas, niebla suave y luz volumétrica…"></textarea></div>
+   <div class="field"><label for="imageEndpoint">Endpoint de tu backend</label><input type="url" id="imageEndpoint" placeholder="https://tu-servidor.com/api/generate-image"></div>
+   <button class="btn primary" id="generateImage" style="width:100%">✧ Generar imagen</button>
+   <p class="hint">Contrato esperado: POST JSON <code>{prompt, aspectRatio:"16:9"}</code> y respuesta JSON con <code>image</code> (URL o data URL). No introduzcas aquí una clave API.</p>
+  </div>
+ </div>
+ <div class="pane" id="pane-motion">
+  <div class="surface panel">
+   <div class="panel-title"><h3>Fotograma de movimiento IA</h3><small>Image-to-image</small></div>
+   <p class="hint">Genera una variante de la imagen actual con cambios de movimiento sugeridos. El resultado se mezcla en una curva sinusoidal para volver al fotograma inicial.</p>
+   <div class="field"><label for="motionPrompt">Instrucción de movimiento</label><textarea id="motionPrompt" placeholder="Ej. Las nubes se desplazan lentamente y el agua del río fluye…"></textarea></div>
+   <div class="field"><label for="motionEndpoint">Endpoint de tu backend</label><input type="url" id="motionEndpoint" placeholder="https://tu-servidor.com/api/animate-image"></div>
+   <div class="field"><label for="blend">Mezcla de movimiento <output id="blendVal">70%</output></label><input id="blend" type="range" min="10" max="100" value="70"></div>
+   <button class="btn primary" id="generateMotion" style="width:100%">◉ Generar fotograma IA</button>
+   <button class="btn hidden" id="removeMotion" style="width:100%;margin-top:8px">Quitar fotograma IA</button>
+   <p class="hint">Contrato esperado: POST JSON <code>{prompt, image}</code> y respuesta JSON con <code>image</code>. La imagen base se envía como data URL.</p>
+  </div>
+ </div>
+</aside>
+</main>
+<footer class="footer">ANIMALOOP STUDIO PRO · Canvas 2D · Procesamiento local en tu navegador</footer>
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<script>
+(()=>{'use strict';
+const D=15000, $=id=>document.getElementById(id);
+const canvas=$('canvas'),ctx=canvas.getContext('2d',{alpha:false});
+let image=null,motionImage=null,effect='ken',overlay='none',intensity=.5,blend=.7,playing=true,elapsed=0,last=performance.now(),raf=0,recording=null,recordTimer=0,recordChunks=[],recordStream=null,cancelled=false,particles=[];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function toast(msg,error=false){const t=$('toast');t.textContent=msg;t.classList.toggle('error',error);t.classList.remove('hidden');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.add('hidden'),4300)}
+function setBusy(on,title='Procesando…'){$('playState').textContent=on?'● '+title:(image?'● Vista previa activa':'● Vista previa lista')}
+function progress(){return (elapsed%D)/D}
+function resetClock(){elapsed=0;last=performance.now();draw(0)}
+function makeParticles(){particles=Array.from({length:130},()=>({x:Math.random(),y:Math.random(),r:.7+Math.random()*2.2,phase:Math.random()*Math.PI*2,speed:1+Math.floor(Math.random()*3)}))}
+function fitImage(img){const cw=canvas.width,ch=canvas.height,ir=img.width/img.height,cr=cw/ch;let sx=0,sy=0,sw=img.width,sh=img.height;if(ir>cr){sw=img.height*cr;sx=(img.width-sw)/2}else{sh=img.width/cr;sy=(img.height-sh)/2}return {sx,sy,sw,sh}}
+function render(p){
+ const w=canvas.width,h=canvas.height;ctx.fillStyle='#080b11';ctx.fillRect(0,0,w,h);if(!image)return;
+ const a=p*Math.PI*2,base=fitImage(image),scale=effect==='ken'?1+.12*intensity*(1-Math.cos(a))/2:effect==='breath'?1+.055*intensity*(1-Math.cos(a))/2:effect==='pan'?1.07:1.02;
+ const dx=effect==='pan'?Math.sin(a)*w*.035*intensity:0,dy=effect==='pan'?(1-Math.cos(a))*h*.012*intensity:0;
+ const dw=w*scale,dh=h*scale,x=(w-dw)/2+dx,y=(h-dh)/2+dy;
+ if(effect==='ripple'&&!motionImage){const rows=180,seg=h/rows,amp=13*intensity*w/1920;for(let i=0;i<rows;i++){const sy=base.sy+(i/rows)*base.sh,sh=base.sh/rows,shift=Math.sin((i/rows)*Math.PI*5+a)*amp;ctx.drawImage(image,base.sx,sy,base.sw,sh,shift,i*seg,w,seg+1)}}
+ else{ctx.drawImage(image,base.sx,base.sy,base.sw,base.sh,x,y,dw,dh)}
+ if(motionImage){ctx.save();ctx.globalAlpha=((1-Math.cos(a))/2)*blend;const m=fitImage(motionImage);ctx.drawImage(motionImage,m.sx,m.sy,m.sw,m.sh,x,y,dw,dh);ctx.restore()}
+ if(effect==='breath'){ctx.fillStyle=`rgba(255,255,255,${.025*intensity*(1+Math.cos(a))/2})`;ctx.fillRect(0,0,w,h)}
+ renderOverlay(p);
+}
+function renderOverlay(p){const w=canvas.width,h=canvas.height,a=p*Math.PI*2,s=w/1920;if(overlay==='dust'||overlay==='gold'){const gold=overlay==='gold';ctx.save();for(const q of particles){const x=((q.x*w+Math.sin(a*q.speed+q.phase)*w*.025)%w+w)%w,y=((q.y*h+p*h*q.speed)%h);ctx.globalAlpha=.2+.55*(.5+.5*Math.sin(a*q.speed+q.phase));ctx.fillStyle=gold?'#ffd18a':'#eff5ff';ctx.shadowBlur=gold?16*s:9*s;ctx.shadowColor=gold?'#e9a94d':'#fff';ctx.beginPath();ctx.arc(x,y,q.r*s,0,Math.PI*2);ctx.fill()}ctx.restore()}
+ else if(overlay==='rain'){ctx.save();ctx.strokeStyle='#c8e3ff';ctx.lineWidth=Math.max(1,s);for(let i=0;i<140;i++){const x=((i*73)%w),y=((i*137+p*h*3)%h);ctx.globalAlpha=.12+.18*Math.sin(i*2);ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-3*s,y+28*s);ctx.stroke()}ctx.restore()}
+ else if(overlay==='leak'){ctx.save();ctx.globalCompositeOperation='screen';for(let i=0;i<3;i++){const x=w*(.18+i*.34)+Math.sin(a+i*2)*w*.1,y=h*(.2+i*.25)+Math.cos(a+i)*h*.1,r=w*.24;const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,['#ffbd6b22','#f57d6b18','#9285ff1b'][i]);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(0,0,w,h)}ctx.restore()}}
+function draw(now){if(playing){const dt=Math.min(100,now-last);elapsed+=dt;last=now}else last=now;const p=progress();render(p);$('clock').textContent=`00:${(p*15).toFixed(1).padStart(4,'0')}`;$('progress').style.width=(p*100)+'%';raf=requestAnimationFrame(draw)}
+function loadFile(file){if(!file)return;if(!file.type.startsWith('image/')){toast('Selecciona un archivo de imagen válido.',true);return}const url=URL.createObjectURL(file),img=new Image();img.onload=()=>{image=img;motionImage=null;$('empty').classList.add('hidden');$('export').disabled=false;$('downloadFrame').disabled=false;$('removeMotion').classList.add('hidden');URL.revokeObjectURL(url);resetClock();toast('Imagen cargada correctamente.');};img.onerror=()=>{URL.revokeObjectURL(url);toast('No se pudo abrir esa imagen.',true)};img.src=url}
+$('upload').addEventListener('change',e=>loadFile(e.target.files[0]));$('replace').onclick=()=>$('upload').click();
+document.querySelectorAll('[data-effect]').forEach(b=>b.onclick=()=>{effect=b.dataset.effect;document.querySelectorAll('[data-effect]').forEach(x=>x.classList.toggle('active',x===b))});
+document.querySelectorAll('[name=overlay]').forEach(r=>r.onchange=()=>overlay=r.value);
+$('intensity').oninput=e=>{$('intensityVal').textContent=e.target.value+'%';intensity=e.target.value/100};
+$('blend').oninput=e=>{$('blendVal').textContent=e.target.value+'%';blend=e.target.value/100};
+$('play').onclick=()=>{playing=!playing;$('play').textContent=playing?'Ⅱ':'▶';$('playState').textContent=playing?'● Reproduciendo':'Ⅱ En pausa';last=performance.now()};
+$('reset').onclick=()=>{resetClock();toast('Bucle reiniciado.')};
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.pane').forEach(x=>x.classList.toggle('active',x.id==='pane-'+b.dataset.tab))});
+$('resolution').onchange=()=>{const [w,h]=$('resolution').value.split('x').map(Number);canvas.width=w;canvas.height=h;$('resLabel').textContent=`${w} × ${h} · 16:9`;makeParticles();render(progress())};
+$('downloadFrame').onclick=()=>{canvas.toBlob(blob=>{if(!blob){toast('No se pudo guardar el fotograma.',true);return}download(blob,'AnimaLoop_frame.png')},'image/png')};
+function download(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500)}
+function detectFormats(){const candidates=[['video/mp4;codecs="avc1.42E01E"','MP4 · H.264','mp4'],['video/webm;codecs=vp9','WebM · VP9','webm'],['video/webm;codecs=vp8','WebM · VP8','webm'],['video/webm','WebM','webm']];const supported=candidates.filter(c=>window.MediaRecorder&&MediaRecorder.isTypeSupported(c[0]));$('codec').innerHTML='';supported.forEach(c=>{const o=document.createElement('option');o.value=c[0];o.textContent=c[1];o.dataset.ext=c[2];$('codec').append(o)});if(!supported.length){$('codec').add(new Option('No compatible recorder',''));$('export').disabled=true;$('formatNote').textContent='Este navegador no ofrece MediaRecorder compatible. Prueba una versión actual de Chrome, Edge o Firefox.'}else{$('formatNote').textContent='Formatos detectados en este navegador: '+supported.map(x=>x[1]).join(', ')+'. AVI y MKV no se ofrecen porque no son una salida nativa fiable de MediaRecorder.'}}
+async function exportVideo(){if(!image)return;const mime=$('codec').value;if(!mime||!window.MediaRecorder){toast('Este navegador no permite grabar el lienzo.',true);return}const [w,h]=$('resolution').value.split('x').map(Number),fps=Number($('fps').value),bitrate=Number($('bitrate').value),oldW=canvas.width,oldH=canvas.height,wasPlaying=playing,oldElapsed=elapsed;
+ try{playing=true;elapsed=0;last=performance.now();canvas.width=w;canvas.height=h;render(0);const stream=canvas.captureStream(fps);recordStream=stream;recordChunks=[];cancelled=false;recording=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:bitrate});$('exportProgressWrap').classList.remove('hidden');$('export').disabled=true;$('exportProgress').style.width='0%';$('exportPct').textContent='0%';$('exportStatus').textContent='Grabando fotogramas…';
+ recording.ondataavailable=e=>{if(e.data&&e.data.size)recordChunks.push(e.data)};
+ const finished=new Promise((resolve,reject)=>{recording.onstop=resolve;recording.onerror=e=>reject(e.error||new Error('Error del grabador'))});
+ recording.start(250);const start=performance.now();
+ await new Promise(resolve=>{recordTimer=setInterval(()=>{const pct=Math.min(100,(performance.now()-start)/D*100);$('exportProgress').style.width=pct+'%';$('exportPct').textContent=Math.floor(pct)+'%';if(pct>=100||cancelled){clearInterval(recordTimer);resolve()}},80)});
+ if(recording.state!=='inactive')recording.stop();await finished;
+ if(!cancelled&&recordChunks.length){const blob=new Blob(recordChunks,{type:recording.mimeType||mime}),ext=$('codec').selectedOptions[0].dataset.ext||'webm';download(blob,`AnimaLoop_${w}x${h}_${Date.now()}.${ext}`);toast('Vídeo exportado correctamente.')}
+ else toast('Exportación cancelada.');
+ }catch(err){console.error(err);toast('No se pudo exportar: '+(err.message||'error del navegador'),true)}
+ finally{clearInterval(recordTimer);if(recordStream)recordStream.getTracks().forEach(t=>t.stop());recordStream=null;recording=null;canvas.width=oldW;canvas.height=oldH;elapsed=oldElapsed;playing=wasPlaying;last=performance.now();$('exportProgressWrap').classList.add('hidden');$('export').disabled=!image;render(progress())}
+}
+$('export').onclick=exportVideo;$('cancelExport').onclick=()=>{cancelled=true;if(recording&&recording.state!=='inactive')recording.stop()};
+async function endpointRequest(endpoint,payload){if(!endpoint)throw new Error('Configura primero el endpoint de backend.');let url;try{url=new URL(endpoint)}catch{throw new Error('La URL del endpoint no es válida.')}if(location.protocol==='https:'&&url.protocol!=='https:')throw new Error('Usa HTTPS para el endpoint.');const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!res.ok)throw new Error(`El servidor respondió HTTP ${res.status}.`);const data=await res.json();if(!data.image||typeof data.image!=='string')throw new Error('El backend debe devolver JSON con la propiedad "image".');return data.image}
+function imageFromResponse(src){return new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(new Error('La respuesta no contiene una imagen válida.'));im.src=src})}
+$('generateImage').onclick=async()=>{const prompt=$('imagePrompt').value.trim();if(!prompt){toast('Escribe una descripción primero.',true);return}const b=$('generateImage');b.disabled=true;b.textContent='Generando…';try{const src=await endpointRequest($('imageEndpoint').value.trim(),{prompt,aspectRatio:'16:9'});const im=await imageFromResponse(src);image=im;motionImage=null;$('empty').classList.add('hidden');$('export').disabled=false;$('downloadFrame').disabled=false;resetClock();toast('Imagen recibida desde tu backend.')}catch(e){toast(e.message,true)}finally{b.disabled=false;b.textContent='✧ Generar imagen'}};
+$('generateMotion').onclick=async()=>{if(!image){toast('Carga primero una imagen base.',true);return}const prompt=$('motionPrompt').value.trim();if(!prompt){toast('Escribe qué elemento debe moverse.',true);return}const b=$('generateMotion');b.disabled=true;b.textContent='Generando…';try{const temp=document.createElement('canvas');temp.width=1280;temp.height=720;temp.getContext('2d').drawImage(image,0,0,1280,720);const src=await endpointRequest($('motionEndpoint').value.trim(),{prompt,image:temp.toDataURL('image/jpeg',.9)});motionImage=await imageFromResponse(src);$('removeMotion').classList.remove('hidden');toast('Fotograma de movimiento cargado.')}catch(e){toast(e.message,true)}finally{b.disabled=false;b.textContent='◉ Generar fotograma IA'}};
+$('removeMotion').onclick=()=>{motionImage=null;$('removeMotion').classList.add('hidden');toast('Capa IA desactivada.')};
+$('aboutBtn').onclick=()=>toast('AnimaLoop Studio Pro · Las animaciones y exportaciones se procesan localmente. La IA requiere un backend propio.');
+makeParticles();detectFormats();last=performance.now();raf=requestAnimationFrame(draw);
+window.addEventListener('beforeunload',()=>{cancelled=true;if(raf)cancelAnimationFrame(raf);if(recording&&recording.state!=='inactive')recording.stop();if(recordStream)recordStream.getTracks().forEach(t=>t.stop())});
+})();
+</script>
+</body></html>
